@@ -238,7 +238,6 @@ if feature["sd_skewness_kurtosis_COG"] = 1
   endfor
 endif
 
-
 # Delete the trailing comma in header and write to file
 len = length(header$)
 header$ = mid$(header$, 1, len-1)
@@ -657,7 +656,6 @@ if no_TextGrid = 1
       select 'extractedObj'
       Remove
     endif
-
 
     # Delete the trailing comma in resultLine and write to the result file
     len = length(resultLine$)
@@ -1122,7 +1120,9 @@ elsif target = 1
           Remove
         endif
 
-        # Write resultLine to the result file
+        # Delete the trailing comma in resultLine and write to the result file
+        len = length(resultLine$)
+        resultLine$ = mid$(resultLine$, 1, len-1)
         fileappend "'resultFile$'" 'resultLine$''newline$'
 
       endfor
