@@ -238,7 +238,10 @@ if feature["sd_skewness_kurtosis_COG"] = 1
   endfor
 endif
 
-# Write header and newline
+
+# Delete the trailing comma in header and write to file
+len = length(header$)
+header$ = mid$(header$, 1, len-1)
 fileappend 'resultFile$' 'header$''newline$'
 
 
@@ -655,7 +658,10 @@ if no_TextGrid = 1
       Remove
     endif
 
-    # Write resultLine to the result file
+
+    # Delete the trailing comma in resultLine and write to the result file
+    len = length(resultLine$)
+    resultLine$ = mid$(resultLine$, 1, len-1)
     fileappend 'resultFile$' 'resultLine$''newline$'
 
     # Increment file_count
@@ -1126,7 +1132,7 @@ elsif target = 1
     file_count = file_count + 1
 
     date$ = date$()
-    printline 'file_count''tab$'file(s) processed - 'date$' 'soundFile$'
+    printline 'file_count''tab$'file(s) processed: 'soundFile$' - 'date$'
 
     # Clear object window
     select all
@@ -1622,7 +1628,7 @@ elsif target = 2
     file_count = file_count + 1
 
     date$ = date$()
-    printline 'file_count''tab$'file(s) processed - 'date$' 'soundFile$'
+    printline 'file_count''tab$'file(s) processed: 'soundFile$' - 'date$'
 
     # Clear object window
     select all
