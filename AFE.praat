@@ -53,8 +53,8 @@ feature["duration"] = 'Duration'
 feature["formants"] = 'Formants'
 feature["pitch"] = 'Pitch'
 feature["intensity"] = 'Intensity'
-feature["h1-h2"] = 'H1_-_H2'
-feature["h1-a123"] = 'H1_-_A1,_H1_-_A2,_H1_-_A3'
+feature["h1_minus_h2"] = 'H1_-_H2'
+feature["h1_minus_a123"] = 'H1_-_A1,_H1_-_A2,_H1_-_A3'
 feature["sd_skewness_kurtosis_COG"] = 'sd,_skewness,_kurtosis,_COG'
 
 ## Exit if no feature is selected
@@ -62,8 +62,8 @@ if (feature["duration"] = 0) and
   ... (feature["formants"] = 0) and
   ... (feature["pitch"] = 0) and
   ... (feature["intensity"] = 0) and
-  ... (feature["h1-h2"] = 0) and
-  ... (feature["h1-a123"] = 0) and
+  ... (feature["h1_minus_h2"] = 0) and
+  ... (feature["h1_minus_a123"] = 0) and
   ... (feature["sd_skewness_kurtosis_COG"] = 0)
   exitScript: "No features are selected. Please select features to extract."
 endif
@@ -151,11 +151,11 @@ if feature["intensity"] = 1
   printline 'tab$''tab$''tab$''tab$''tab$''tab$' Intensity
 endif
 
-if feature["h1-h2"] = 1
+if feature["h1_minus_h2"] = 1
   printline 'tab$''tab$''tab$''tab$''tab$''tab$' H1 - H2
 endif
 
-if feature["h1-a123"] = 1
+if feature["h1_minus_a123"] = 1
   printline 'tab$''tab$''tab$''tab$''tab$''tab$' H1 - A1, H1 - A2, H1 - A3
 endif
 
@@ -217,14 +217,14 @@ if feature["intensity"] = 1
   minimum_pitch = 100
 endif
 
-if feature["h1-h2"] = 1
+if feature["h1_minus_h2"] = 1
   for k from 1 to chunks
     k$ = string$(k)
-    header$ = "'header$'h1-h2_ch'k$',"
+    header$ = "'header$'h1_minus_h2_ch'k$',"
   endfor
 endif
 
-if feature["h1-a123"] = 1
+if feature["h1_minus_a123"] = 1
   for k from 1 to chunks
     k$ = string$(k)
     header$ = "'header$'h1-a1_ch'k$',h1-a2_ch'k$',h1-a3_ch'k$',"
@@ -273,8 +273,8 @@ if no_TextGrid = 1
       ... (feature["formants"] = 0) and
       ... (feature["pitch"] = 0) and
       ... (feature["intensity"] = 0) and
-      ... (feature["h1-h2"] = 0) and
-      ... (feature["h1-a123"] = 0) and
+      ... (feature["h1_minus_h2"] = 0) and
+      ... (feature["h1_minus_a123"] = 0) and
       ... (feature["sd_skewness_kurtosis_COG"] = 0)
       soundObj = selected("Sound")
     else
@@ -284,8 +284,8 @@ if no_TextGrid = 1
 
     # Create pitch object
     if (feature["pitch"] = 1) or
-      ... (feature["h1-h2"] = 1) or
-      ... (feature["h1-a123"] = 1)
+      ... (feature["h1_minus_h2"] = 1) or
+      ... (feature["h1_minus_a123"] = 1)
       select 'soundObj'
       To Pitch... 0 50 600
       pitch_tracking = selected("Pitch")
@@ -400,7 +400,7 @@ if no_TextGrid = 1
 
 
     # Extract features: [H1 - H2]
-    if feature["h1-h2"] = 1
+    if feature["h1_minus_h2"] = 1
       select 'soundObj'
 
       Extract part... start end "rectangular" 1 "no"
@@ -456,7 +456,7 @@ if no_TextGrid = 1
           pitch_val = 0
         endif
 
-        # Get H1-H2
+        # Get h1-h2
         select 'chunkedObj'
         To Spectrum (fft)
         spectrumObj = selected("Spectrum")
@@ -498,7 +498,7 @@ if no_TextGrid = 1
 
 
     # Extract features: [H1 - A1, H1 - A2, H1 - A3]
-    if feature["h1-a123"] = 1
+    if feature["h1_minus_a123"] = 1
       select 'soundObj'
       Extract part... start end "rectangular" 1 "no"
       extractedObj = selected("Sound")
@@ -554,7 +554,7 @@ if no_TextGrid = 1
           pitch_val = 0
         endif
 
-        # Get H1-H2
+        # Get h1_minus_h2
         select 'chunkedObj'
         To Spectrum (fft)
         spectrumObj = selected("Spectrum")
@@ -662,7 +662,7 @@ if no_TextGrid = 1
     file_count = file_count + 1
 
     date$ = date$()
-    printline 'file_count''tab$'file(s) processed - 'date$' 'soundFile$'
+    printline 'file_count''tab$'file(s) processed: 'soundFile$' - 'date$'
 
     # Clear object window
     select all
@@ -698,8 +698,8 @@ elsif target = 1
       ... (feature["formants"] = 0) and
       ... (feature["pitch"] = 0) and
       ... (feature["intensity"] = 0) and
-      ... (feature["h1-h2"] = 0) and
-      ... (feature["h1-a123"] = 0) and
+      ... (feature["h1_minus_h2"] = 0) and
+      ... (feature["h1_minus_a123"] = 0) and
       ... (feature["sd_skewness_kurtosis_COG"] = 0)
       soundObj = selected("Sound")
     else
@@ -709,8 +709,8 @@ elsif target = 1
 
     # Create pitch object
     if (feature["pitch"] = 1) or
-      ... (feature["h1-h2"] = 1) or
-      ... (feature["h1-a123"] = 1)
+      ... (feature["h1_minus_h2"] = 1) or
+      ... (feature["h1_minus_a123"] = 1)
       select 'soundObj'
       To Pitch... 0 50 600
       pitch_tracking = selected("Pitch")
@@ -860,7 +860,7 @@ elsif target = 1
         endif
 
         # Extract features: [H1 - H2]
-        if feature["h1-h2"] = 1
+        if feature["h1_minus_h2"] = 1
           select 'soundObj'
           # Add jitter for accurate formant tracking
           Extract part... start-jitter end+jitter "rectangular" 1 "no"
@@ -917,7 +917,7 @@ elsif target = 1
               pitch_val = 0
             endif
 
-            # Get H1-H2
+            # Get h1_minus_h2
             select 'chunkedObj'
             To Spectrum (fft)
             spectrumObj = selected("Spectrum")
@@ -959,7 +959,7 @@ elsif target = 1
 
 
         # Extract features: [H1 - A1, H1 - A2, H1 - A3]
-        if feature["h1-a123"] = 1
+        if feature["h1_minus_a123"] = 1
           select 'soundObj'
           # Add jitter for accurate formant tracking
           Extract part... start-jitter end+jitter "rectangular" 1 "no"
@@ -1015,7 +1015,7 @@ elsif target = 1
               pitch_val = 0
             endif
 
-            # Get H1-H2
+            # Get h1_minus_h2
             select 'chunkedObj'
             To Spectrum (fft)
             spectrumObj = selected("Spectrum")
@@ -1184,8 +1184,8 @@ elsif target = 2
       ... (feature["formants"] = 0) and
       ... (feature["pitch"] = 0) and
       ... (feature["intensity"] = 0) and
-      ... (feature["h1-h2"] = 0) and
-      ... (feature["h1-a123"] = 0) and
+      ... (feature["h1_minus_h2"] = 0) and
+      ... (feature["h1_minus_a123"] = 0) and
       ... (feature["sd_skewness_kurtosis_COG"] = 0)
       soundObj = selected("Sound")
     else
@@ -1195,8 +1195,8 @@ elsif target = 2
 
     # Create pitch object
     if (feature["pitch"] = 1) or
-      ... (feature["h1-h2"] = 1) or
-      ... (feature["h1-a123"] = 1)
+      ... (feature["h1_minus_h2"] = 1) or
+      ... (feature["h1_minus_a123"] = 1)
       select 'soundObj'
       To Pitch... 0 50 600
       pitch_tracking = selected("Pitch")
@@ -1351,7 +1351,7 @@ elsif target = 2
 
 
             # Extract features: [H1 - H2]
-            if feature["h1-h2"] = 1
+            if feature["h1_minus_h2"] = 1
               select 'soundObj'
               # Add jitter for accurate formant tracking
               Extract part... start-jitter end+jitter "rectangular" 1 "no"
@@ -1407,7 +1407,7 @@ elsif target = 2
                   pitch_val = 0
                 endif
 
-                # Get H1-H2
+                # Get h1_minus_h2
                 select 'chunkedObj'
                 To Spectrum (fft)
                 spectrumObj = selected("Spectrum")
@@ -1449,7 +1449,7 @@ elsif target = 2
 
 
             # Extract features: [H1 - A1, H1 - A2, H1 - A3]
-            if feature["h1-a123"] = 1
+            if feature["h1_minus_a123"] = 1
               select 'soundObj'
               # Add jitter for accurate formant tracking
               Extract part... start-jitter end+jitter "rectangular" 1 "no"
@@ -1505,7 +1505,7 @@ elsif target = 2
                   pitch_val = 0
                 endif
 
-                # Get H1-H2
+                # Get h1_minus_h2
                 select 'chunkedObj'
                 To Spectrum (fft)
                 spectrumObj = selected("Spectrum")
@@ -1608,7 +1608,9 @@ elsif target = 2
               Remove
             endif
 
-            # Write resultLine to the result file
+            # Delete the trailing comma in resultLine and write to the result file
+            len = length(resultLine$)
+            resultLine$ = mid$(resultLine$, 1, len-1)
             fileappend 'resultFile$' 'resultLine$''newline$'
 
           endif
