@@ -1,14 +1,15 @@
 
 # [AFE] - Acoustic Feature Extractor
 ---
-**AFE** is a praat script for which to extract  acoustic properties including duration, pitch, intensity and spectral qualities.
+**AFE** is a Praat script for which to extract various acoustic properties including duration, pitch, intensity and spectral qualities.
 
 <br />
 
 ## GUI
-Run script in Praat
+Run script in Praat:
+
 <p align="center">
-  <img width="70%" src="misc/GUI.png" />
+  <img width="60%" src="misc/GUI.png" />
 </p>
 
 
