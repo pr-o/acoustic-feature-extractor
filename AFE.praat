@@ -431,85 +431,101 @@ if no_TextGrid = 1
         Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
       elsif min_formants > 2
         Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-      else
+      elsif min_formants > 1
         Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
+      else
+        no_formants = 1
       endif
 
-      Rename... 'name$'_afterTracking
-      formant_afterTracking = selected("Formant")
+      if no_formants = 1
+        h1_minus_h2 = 0
 
-      # Extract features by chunk
-      for counter from 1 to 'chunks'
-        quotient = dur / chunks
-        ch_start = quotient * (counter - 1)
-        ch_end = ch_start + quotient
+        for counter from 1 to 'chunks'
+          resultLine$ = "'resultLine$''h1_minus_h2',"
+        endfor
 
-        select 'extractedObj'
-        Extract part...  ch_start ch_end Hanning 1 no
-        Rename... 'name$'_chunked
-        chunkedObj = selected("Sound")
+        select 'formant_beforeTracking'
+        plus 'extractedObj'
+        Remove
+
+      else
+        Rename... 'name$'_afterTracking
+        formant_afterTracking = selected("Formant")
+
+        # Extract features by chunk
+        for counter from 1 to 'chunks'
+          quotient = dur / chunks
+          ch_start = quotient * (counter - 1) + jitter
+          ch_end = ch_start + quotient
+
+          select 'extractedObj'
+          Extract part... ch_start ch_end Hanning 1 no
+          Rename... 'name$'_chunked
+          chunkedObj = selected("Sound")
+
+          select 'formant_afterTracking'
+          f1 = Get mean... 1 ch_start ch_end Hertz
+          f2 = Get mean... 2 ch_start ch_end Hertz
+
+          if min_formants > 3
+            f3 = Get mean... 3 ch_start ch_end Hertz
+            f4 = Get mean... 4 ch_start ch_end Hertz
+          elsif min_formants > 2
+            f3 = Get mean... 3 ch_start ch_end Hertz
+            f4 = 0
+          else
+            f3 = 0
+            f4 = 0
+          endif
+
+          # Get pitch
+          select 'pitch_interpolated'
+          pitch_val = Get mean... start+quotient*(counter-1) start+quotient*counter Hertz
+
+          if pitch_val = undefined
+            pitch_val = 0
+          endif
+
+          # Get H1-H2
+          select 'chunkedObj'
+          To Spectrum (fft)
+          spectrumObj = selected("Spectrum")
+
+          To Ltas (1-to-1)
+          ltasObj = selected("Ltas")
+
+          if pitch_val <> undefined
+            p10_nf0md = 'pitch_val' / 10
+            lowerbh1 = 'pitch_val' - 'p10_nf0md'
+            upperbh1 = 'pitch_val' + 'p10_nf0md'
+            lowerbh2 = ('pitch_val' * 2) - ('p10_nf0md' * 2)
+            upperbh2 = ('pitch_val' * 2) + ('p10_nf0md' * 2)
+            h1db = Get maximum... 'lowerbh1' 'upperbh1' None
+            #h1hz = Get frequency of maximum... 'lowerbh1' 'upperbh1' None
+            h2db = Get maximum... 'lowerbh2' 'upperbh2' None
+            #h2hz = Get frequency of maximum... 'lowerbh2' 'upperbh2' None
+
+            # Calculate potential voice quality correlates
+            h1_minus_h2 = 'h1db' - 'h2db'
+          else
+            h1_minus_h2 = 0
+          endif
+
+          resultLine$ = "'resultLine$''h1_minus_h2',"
+
+          select 'ltasObj'
+          plus 'spectrumObj'
+          plus 'chunkedObj'
+          Remove
+        endfor
 
         select 'formant_afterTracking'
-        f1 = Get mean... 1 ch_start ch_end Hertz
-        f2 = Get mean... 2 ch_start ch_end Hertz
-
-        if min_formants > 3
-          f4 = Get mean... 4 ch_start ch_end Hertz
-          f3 = Get mean... 3 ch_start ch_end Hertz
-        elsif min_formants > 2
-          f4 = 0
-          f3 = Get mean... 3 ch_start ch_end Hertz
-        else
-          f4 = 0
-          f3 = 0
-        endif
-
-        # Get pitch
-        select 'pitch_interpolated'
-        pitch_val = Get mean... start+quotient*(counter-1) start+quotient*counter Hertz
-
-        if pitch_val = undefined
-          pitch_val = 0
-        endif
-
-        # Get h1-h2
-        select 'chunkedObj'
-        To Spectrum (fft)
-        spectrumObj = selected("Spectrum")
-
-        To Ltas (1-to-1)
-        ltasObj = selected("Ltas")
-
-        if pitch_val <> undefined
-          p10_nf0md = 'pitch_val' / 10
-          lowerbh1 = 'pitch_val' - 'p10_nf0md'
-          upperbh1 = 'pitch_val' + 'p10_nf0md'
-          lowerbh2 = ('pitch_val' * 2) - ('p10_nf0md' * 2)
-          upperbh2 = ('pitch_val' * 2) + ('p10_nf0md' * 2)
-          h1db = Get maximum... 'lowerbh1' 'upperbh1' None
-          #h1hz = Get frequency of maximum... 'lowerbh1' 'upperbh1' None
-          h2db = Get maximum... 'lowerbh2' 'upperbh2' None
-          #h2hz = Get frequency of maximum... 'lowerbh2' 'upperbh2' None
-
-          # Calculate potential voice quality correlates
-          h1_minus_h2 = 'h1db' - 'h2db'
-        else
-          h1_minus_h2 = 0
-        endif
-
-        resultLine$ = "'resultLine$''h1_minus_h2',"
-
-        select 'ltasObj'
-        plus 'spectrumObj'
-        plus 'chunkedObj'
+        plus 'formant_beforeTracking'
+        plus 'extractedObj'
         Remove
-      endfor
-
-      select 'formant_afterTracking'
-      plus 'formant_beforeTracking'
-      plus 'extractedObj'
-      Remove
+      endif
     endif
+  endif
 
 
     # Extract features: [H1 - A1, H1 - A2, H1 - A3]
@@ -528,7 +544,7 @@ if no_TextGrid = 1
         Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
       elsif min_formants > 2
         Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-      elsif
+      elsif min_formants > 1
         Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
       else
         no_formants = 1
@@ -542,6 +558,10 @@ if no_TextGrid = 1
         for counter from 1 to 'chunks'
           resultLine$ = "'resultLine$''h1_minus_a1','h1_minus_a2','h1_minus_a3',"
         endfor
+
+        select 'formant_beforeTracking'
+        plus 'extractedObj'
+        Remove
 
       else
         Rename... 'name$'_afterTracking
@@ -636,12 +656,12 @@ if no_TextGrid = 1
           plus 'chunkedObj'
           Remove
         endfor
-      endif
 
-      select 'formant_afterTracking'
-      plus 'formant_beforeTracking'
-      plus 'extractedObj'
-      Remove
+        select 'formant_afterTracking'
+        plus 'formant_beforeTracking'
+        plus 'extractedObj'
+        Remove
+      endif
     endif
 
 
@@ -828,7 +848,7 @@ elsif target = 1
               Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             elsif min_formants > 2
               Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-            elsif
+            elsif min_formants > 1
               Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             else
               no_formants = 1
@@ -942,7 +962,7 @@ elsif target = 1
               Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             elsif min_formants > 2
               Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-            elsif
+            elsif min_formants > 1
               Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             else
               no_formants = 1
@@ -1067,7 +1087,7 @@ elsif target = 1
               Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             elsif min_formants > 2
               Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-            elsif
+            elsif min_formants > 1
               Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             else
               no_formants = 1
@@ -1403,7 +1423,7 @@ elsif target = 2
                 Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
               elsif min_formants > 2
                 Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-              elsif
+              elsif min_formants > 1
                 Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
               else
                 no_formants = 1
@@ -1508,7 +1528,7 @@ elsif target = 2
                 Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
               elsif min_formants > 2
                 Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-              elsif
+              elsif min_formants > 1
                 Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
               else
                 no_formants = 1
@@ -1620,7 +1640,7 @@ elsif target = 2
                 Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
               elsif min_formants > 2
                 Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-              elsif
+              elsif min_formants > 1
                 Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
               else
                 no_formants = 1
