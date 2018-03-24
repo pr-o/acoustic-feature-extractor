@@ -1,26 +1,39 @@
-#
-#
-# #################
-# ##  AFE.praat  ## - Acoustic Feature Extractor
-# #################
-#
-#                     Sung Hah Hwang (August 5, 2017)
-#
-#
+##########################################################
+#                                                        #
+#               ___          ___       ___               #
+#              /\  \        /\__\     /\__\              #
+#             /::\  \      /:/ _/_   /:/ _/_             #
+#            /:/\:\  \    /:/ /\__\ /:/ /\__\            #
+#           /:/ /::\  \  /:/ /:/  //:/ /:/ _/_           #
+#          /:/_/:/\:\__\/:/_/:/  //:/_/:/ /\__\          #
+#          \:\/:/  \/__/\:\/:/  / \:\/:/ /:/  /          #
+#           \::/__/      \::/__/   \::/_/:/  /           #
+#            \:\  \       \:\  \    \:\/:/  /            #
+#             \:\__\       \:\__\    \::/  /             #
+#              \/__/        \/__/     \/__/              #
+#                                                        #
+#                        AFE.praat                       #
+#               Acoustic Feature Extractor               #
+#                                                        #
+#                                      Sung Hah Hwang    #
+#                          Written on: August 5, 2017    #
+#                     Last updated on: March 24, 2018    #
+#                                                        #
+##########################################################
 
 
-## Form
+## Form (GUI)
 form Acoustic Feature Extractor
   comment [ ACOUSTIC FEATURE EXTRACTOR ]
   comment This script extracts acoustic features from sound files with or without TextGrids
 
-  comment ⦿ Directory of sound and TextGrid files:
+  comment ⦿ Directory of sound and TextGrid files (with trailing slash: '/'):
     text Directory /Users/sunghah/readSpeech/
 
-    word Sound_Extension_(with_dot) .wav
+    word Sound_extension_(with_dot) .wav
 
   comment ⦿ Full path to output result file:
-    text ResultFile /Users/sunghah/readSpeech/myresult.txt
+    text ResultFile /Users/sunghah/readSpeech/result.txt
 
   comment ⦿ Specify which tier (number) to use in TextGrids:
     positive TierNumber 1
@@ -35,7 +48,7 @@ form Acoustic Feature Extractor
   comment ⦿ Specify phonemes of interest below (separated by comma without space):
     word Phoneme_set aa,ee,ii,oo,uu
 
-  comment ⦿ Split each segment into how many chunks:
+  comment ⦿ Split each segment into chunks of:
     positive Chunks 3
 
   comment ⦿ Acoustic features to extract:
@@ -47,6 +60,7 @@ form Acoustic Feature Extractor
     boolean H1_-_A1,_H1_-_A2,_H1_-_A3
     boolean sd,_skewness,_kurtosis,_COG
 endform
+
 
 ## Using feature array to improve readability
 feature["duration"] = 'Duration'
@@ -65,7 +79,7 @@ if (feature["duration"] = 0) and
   ... (feature["h1_minus_h2"] = 0) and
   ... (feature["h1_minus_a123"] = 0) and
   ... (feature["sd_skewness_kurtosis_COG"] = 0)
-  exitScript: "No features are selected. Please select features to extract."
+  exitScript: "No features are selected. Please select feature(s) to extract."
 endif
 
 ## Check if another file exists by the name of the result file
@@ -76,7 +90,7 @@ if fileReadable(resultFile$)
 endif
 
 ## Create file lists of sound and TextGrid files
-Create Strings as file list... sound_list 'directory$'*'sound_Extension$'
+Create Strings as file list... sound_list 'directory$'*'sound_extension$'
 Create Strings as file list... textgrid_list 'directory$'*.TextGrid
 
 ## Check number of sound and TextGrid files
@@ -118,7 +132,7 @@ file_count = 0
 startdate$ = date$()
 printline Job started on: 'startdate$''newline$'
 printline Working directory:'tab$''directory$'
-printline Result file path:'tab$''tab$''resultFile$'
+printline Result file path:'tab$''resultFile$'
 printline 'delim$'
 
 printline Number of Sound files:'tab$''tab$''numFiles'
@@ -136,31 +150,31 @@ printline 'delim$'
 printline Selected features:
 
 if feature["duration"] = 1
-  printline 'tab$''tab$''tab$''tab$' Duration
+  printline 'tab$''tab$''tab$' Duration
 endif
 
 if feature["formants"] = 1
-  printline 'tab$''tab$''tab$''tab$' Formants
+  printline 'tab$''tab$''tab$' Formants
 endif
 
 if feature["pitch"] = 1
-  printline 'tab$''tab$''tab$''tab$' Pitch
+  printline 'tab$''tab$''tab$' Pitch
 endif
 
 if feature["intensity"] = 1
-  printline 'tab$''tab$''tab$''tab$' Intensity
+  printline 'tab$''tab$''tab$' Intensity
 endif
 
 if feature["h1_minus_h2"] = 1
-  printline 'tab$''tab$''tab$''tab$' H1 - H2
+  printline 'tab$''tab$''tab$' H1 - H2
 endif
 
 if feature["h1_minus_a123"] = 1
-  printline 'tab$''tab$''tab$''tab$' H1 - A1, H1 - A2, H1 - A3
+  printline 'tab$''tab$''tab$' H1 - A1, H1 - A2, H1 - A3
 endif
 
 if feature["sd_skewness_kurtosis_COG"] = 1
-  printline 'tab$''tab$''tab$''tab$' sd, skewness, kurtosis, COG
+  printline 'tab$''tab$''tab$' sd, skewness, kurtosis, COG
 endif
 
 printline 'delim$'
@@ -776,56 +790,69 @@ elsif target = 1
 
         # Extract features: [f1, f2, f3, f4]
         if feature["formants"] = 1
-          select 'soundObj'
-          # Add jitter for more accurate formant tracking
-          Extract part... start-jitter end+jitter "rectangular" 1 "no"
-          extractedObj = selected("Sound")
 
-          select 'extractedObj'
-          To Formant (burg)... 0 number_formants maximum_formant window_length 50
-          Rename... 'name$'_beforeTracking
-          formant_beforeTracking = selected("Formant")
+          # Do not track or extract formants for SIL's which is subject to errors
+          if startsWith(label$, "SIL")
+            f1 = 0
+            f2 = 0
+            f3 = 0
+            f4 = 0
 
-          min_formants = Get minimum number of formants
-          if min_formants > 3
-            Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-          elsif min_formants > 2
-            Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
+            for counter from 1 to 'chunks'
+              resultLine$ = "'resultLine$''f1','f2','f3','f4',"
+            endfor
+
           else
-            Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-          endif
+            select 'soundObj'
+            # Add jitter for more accurate formant tracking
+            Extract part... start-jitter end+jitter "rectangular" 1 "no"
+            extractedObj = selected("Sound")
 
-          Rename... 'name$'_afterTracking
-          formant_afterTracking = selected("Formant")
+            select 'extractedObj'
+            To Formant (burg)... 0 number_formants maximum_formant window_length 50
+            Rename... 'name$'_beforeTracking
+            formant_beforeTracking = selected("Formant")
 
-          # Extract features by chunk
-          for counter from 1 to 'chunks'
-            quotient = dur / chunks
-            ch_start = quotient * (counter - 1) + jitter
-            ch_end = ch_start + quotient
-
-            select 'formant_afterTracking'
-            f1 = Get mean... 1 ch_start ch_end Hertz
-            f2 = Get mean... 2 ch_start ch_end Hertz
-
+            min_formants = Get minimum number of formants
             if min_formants > 3
-              f3 = Get mean... 3 ch_start ch_end Hertz
-              f4 = Get mean... 4 ch_start ch_end Hertz
+              Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             elsif min_formants > 2
-              f3 = Get mean... 3 ch_start ch_end Hertz
-              f4 = 0
+              Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             else
-              f3 = 0
-              f4 = 0
+              Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             endif
 
-            resultLine$ = "'resultLine$''f1','f2','f3','f4',"
-          endfor
+            Rename... 'name$'_afterTracking
+            formant_afterTracking = selected("Formant")
 
-          # Clear object window
-          plus 'formant_beforeTracking'
-          plus 'extractedObj'
-          Remove
+            # Extract features by chunk
+            for counter from 1 to 'chunks'
+              quotient = dur / chunks
+              ch_start = quotient * (counter - 1) + jitter
+              ch_end = ch_start + quotient
+
+              select 'formant_afterTracking'
+              f1 = Get mean... 1 ch_start ch_end Hertz
+              f2 = Get mean... 2 ch_start ch_end Hertz
+
+              if min_formants > 3
+                f3 = Get mean... 3 ch_start ch_end Hertz
+                f4 = Get mean... 4 ch_start ch_end Hertz
+              elsif min_formants > 2
+                f3 = Get mean... 3 ch_start ch_end Hertz
+                f4 = 0
+              else
+                f3 = 0
+                f4 = 0
+              endif
+              resultLine$ = "'resultLine$''f1','f2','f3','f4',"
+            endfor
+
+            # Clear object window
+            plus 'formant_beforeTracking'
+            plus 'extractedObj'
+            Remove
+          endif
         endif
 
 
@@ -865,260 +892,299 @@ elsif target = 1
 
         # Extract features: [H1 - H2]
         if feature["h1_minus_h2"] = 1
-          select 'soundObj'
-          # Add jitter for accurate formant tracking
-          Extract part... start-jitter end+jitter "rectangular" 1 "no"
-          extractedObj = selected("Sound")
 
-          select 'extractedObj'
-          To Formant (burg)... 0 number_formants maximum_formant window_length 50
-          Rename... 'name$'_beforeTracking
-          formant_beforeTracking = selected("Formant")
+          # Do not extract H1-H2 for SIL's which is subject to errors
+          if startsWith(label$, "SIL")
+            h1_minus_h2 = 0
 
-          min_formants = Get minimum number of formants
-          if min_formants > 3
-            Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-          elsif min_formants > 2
-            Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
+            for counter from 1 to 'chunks'
+              resultLine$ = "'resultLine$''h1_minus_h2',"
+            endfor
+
           else
-            Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-          endif
-
-          Rename... 'name$'_afterTracking
-          formant_afterTracking = selected("Formant")
-
-          # Extract features by chunk
-          for counter from 1 to 'chunks'
-            quotient = dur / chunks
-            ch_start = quotient * (counter - 1) + jitter
-            ch_end = ch_start + quotient
+            select 'soundObj'
+            # Add jitter for accurate formant tracking
+            Extract part... start-jitter end+jitter "rectangular" 1 "no"
+            extractedObj = selected("Sound")
 
             select 'extractedObj'
-            Extract part... ch_start ch_end Hanning 1 no
-            Rename... 'name$'_chunked
-            chunkedObj = selected("Sound")
+            To Formant (burg)... 0 number_formants maximum_formant window_length 50
+            Rename... 'name$'_beforeTracking
+            formant_beforeTracking = selected("Formant")
 
-            select 'formant_afterTracking'
-            f1 = Get mean... 1 ch_start ch_end Hertz
-            f2 = Get mean... 2 ch_start ch_end Hertz
-
+            min_formants = Get minimum number of formants
             if min_formants > 3
-              f3 = Get mean... 3 ch_start ch_end Hertz
-              f4 = Get mean... 4 ch_start ch_end Hertz
+              Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             elsif min_formants > 2
-              f3 = Get mean... 3 ch_start ch_end Hertz
-              f4 = 0
+              Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             else
-              f3 = 0
-              f4 = 0
+              Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             endif
 
-            # Get pitch
-            select 'pitch_interpolated'
-            pitch_val = Get mean... start+quotient*(counter-1) start+quotient*counter Hertz
+            Rename... 'name$'_afterTracking
+            formant_afterTracking = selected("Formant")
 
-            if pitch_val = undefined
-              pitch_val = 0
-            endif
+            # Extract features by chunk
+            for counter from 1 to 'chunks'
+              quotient = dur / chunks
+              ch_start = quotient * (counter - 1) + jitter
+              ch_end = ch_start + quotient
 
-            # Get h1_minus_h2
-            select 'chunkedObj'
-            To Spectrum (fft)
-            spectrumObj = selected("Spectrum")
+              select 'extractedObj'
+              Extract part... ch_start ch_end Hanning 1 no
+              Rename... 'name$'_chunked
+              chunkedObj = selected("Sound")
 
-            To Ltas (1-to-1)
-            ltasObj = selected("Ltas")
+              select 'formant_afterTracking'
+              f1 = Get mean... 1 ch_start ch_end Hertz
+              f2 = Get mean... 2 ch_start ch_end Hertz
 
-            if pitch_val <> undefined
-              p10_nf0md = 'pitch_val' / 10
-              lowerbh1 = 'pitch_val' - 'p10_nf0md'
-              upperbh1 = 'pitch_val' + 'p10_nf0md'
-              lowerbh2 = ('pitch_val' * 2) - ('p10_nf0md' * 2)
-              upperbh2 = ('pitch_val' * 2) + ('p10_nf0md' * 2)
-              h1db = Get maximum... 'lowerbh1' 'upperbh1' None
-              #h1hz = Get frequency of maximum... 'lowerbh1' 'upperbh1' None
-              h2db = Get maximum... 'lowerbh2' 'upperbh2' None
-              #h2hz = Get frequency of maximum... 'lowerbh2' 'upperbh2' None
+              if min_formants > 3
+                f3 = Get mean... 3 ch_start ch_end Hertz
+                f4 = Get mean... 4 ch_start ch_end Hertz
+              elsif min_formants > 2
+                f3 = Get mean... 3 ch_start ch_end Hertz
+                f4 = 0
+              else
+                f3 = 0
+                f4 = 0
+              endif
 
-              # Calculate potential voice quality correlates
-              h1_minus_h2 = 'h1db' - 'h2db'
-            else
-              h1_minus_h2 = 0
-            endif
+              # Get pitch
+              select 'pitch_interpolated'
+              pitch_val = Get mean... start+quotient*(counter-1) start+quotient*counter Hertz
 
-            resultLine$ = "'resultLine$''h1_minus_h2',"
+              if pitch_val = undefined
+                pitch_val = 0
+              endif
 
-            select 'ltasObj'
-            plus 'spectrumObj'
-            plus 'chunkedObj'
+              # Get h1_minus_h2
+              select 'chunkedObj'
+              To Spectrum (fft)
+              spectrumObj = selected("Spectrum")
+
+              To Ltas (1-to-1)
+              ltasObj = selected("Ltas")
+
+              if pitch_val <> undefined
+                p10_nf0md = 'pitch_val' / 10
+                lowerbh1 = 'pitch_val' - 'p10_nf0md'
+                upperbh1 = 'pitch_val' + 'p10_nf0md'
+                lowerbh2 = ('pitch_val' * 2) - ('p10_nf0md' * 2)
+                upperbh2 = ('pitch_val' * 2) + ('p10_nf0md' * 2)
+                h1db = Get maximum... 'lowerbh1' 'upperbh1' None
+                #h1hz = Get frequency of maximum... 'lowerbh1' 'upperbh1' None
+                h2db = Get maximum... 'lowerbh2' 'upperbh2' None
+                #h2hz = Get frequency of maximum... 'lowerbh2' 'upperbh2' None
+
+                # Calculate potential voice quality correlates
+                h1_minus_h2 = 'h1db' - 'h2db'
+              else
+                h1_minus_h2 = 0
+              endif
+
+              resultLine$ = "'resultLine$''h1_minus_h2',"
+
+              select 'ltasObj'
+              plus 'spectrumObj'
+              plus 'chunkedObj'
+              Remove
+            endfor
+
+            # Clear object window
+            select 'formant_afterTracking'
+            plus 'formant_beforeTracking'
+            plus 'extractedObj'
             Remove
-          endfor
-
-          # Clear object window
-          select 'formant_afterTracking'
-          plus 'formant_beforeTracking'
-          plus 'extractedObj'
-          Remove
+          endif
         endif
 
 
         # Extract features: [H1 - A1, H1 - A2, H1 - A3]
         if feature["h1_minus_a123"] = 1
-          select 'soundObj'
-          # Add jitter for accurate formant tracking
-          Extract part... start-jitter end+jitter "rectangular" 1 "no"
-          extractedObj = selected("Sound")
 
-          To Formant (burg)... 0 number_formants maximum_formant window_length 50
-          Rename... 'name$'_beforeTracking
-          formant_beforeTracking = selected("Formant")
+          # Do not extract H1-A1/A2/A3 for SIL's which is subject to errors
+          if startsWith(Label$, "SIL")
+            h1_minus_a1 = 0
+            h1_minus_a2 = 0
+            h1_minus_a3 = 0
 
-          min_formants = Get minimum number of formants
-          if min_formants > 3
-            Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-          elsif min_formants > 2
-            Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
+            for counter from 1 to 'chunks'
+              resultLine$ = "'resultLine$''h1_minus_a1','h1_minus_a2','h1_minus_a3',"
+            endfor
+
           else
-            Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
-          endif
+            select 'soundObj'
+            # Add jitter for accurate formant tracking
+            Extract part... start-jitter end+jitter "rectangular" 1 "no"
+            extractedObj = selected("Sound")
 
-          Rename... 'name$'_afterTracking
-          formant_afterTracking = selected("Formant")
+            To Formant (burg)... 0 number_formants maximum_formant window_length 50
+            Rename... 'name$'_beforeTracking
+            formant_beforeTracking = selected("Formant")
 
-          # Extract features by chunk
-          for counter from 1 to 'chunks'
-            quotient = dur / chunks
-            ch_start = quotient * (counter - 1) + jitter
-            ch_end = ch_start + quotient
-
-            select 'extractedObj'
-            Extract part... ch_start ch_end Hanning 1 no
-            Rename... 'name$'_chunked
-            chunkedObj = selected("Sound")
-
-            select 'formant_afterTracking'
-            f1 = Get mean... 1 ch_start ch_end Hertz
-            f2 = Get mean... 2 ch_start ch_end Hertz
-
+            min_formants = Get minimum number of formants
             if min_formants > 3
-              f3 = Get mean... 3 ch_start ch_end Hertz
-              f4 = Get mean... 4 ch_start ch_end Hertz
+              Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             elsif min_formants > 2
-              f3 = Get mean... 3 ch_start ch_end Hertz
-              f4 = 0
+              Track... 3 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             else
-              f3 = 0
-              f4 = 0
+              Track... 2 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
             endif
 
-            # Get pitch
-            select 'pitch_interpolated'
-            pitch_val = Get mean... start+quotient*(counter-1) start+quotient*counter Hertz
+            Rename... 'name$'_afterTracking
+            formant_afterTracking = selected("Formant")
 
-            if pitch_val = undefined
-              pitch_val = 0
-            endif
+            # Extract features by chunk
+            for counter from 1 to 'chunks'
+              quotient = dur / chunks
+              ch_start = quotient * (counter - 1) + jitter
+              ch_end = ch_start + quotient
 
-            # Get h1_minus_h2
-            select 'chunkedObj'
-            To Spectrum (fft)
-            spectrumObj = selected("Spectrum")
+              select 'extractedObj'
+              Extract part... ch_start ch_end Hanning 1 no
+              Rename... 'name$'_chunked
+              chunkedObj = selected("Sound")
 
-            To Ltas (1-to-1)
-            ltasObj = selected("Ltas")
+              select 'formant_afterTracking'
+              f1 = Get mean... 1 ch_start ch_end Hertz
+              f2 = Get mean... 2 ch_start ch_end Hertz
 
-            if pitch_val <> undefined
-              p10_nf0md = 'pitch_val' / 10
-              lowerbh1 = 'pitch_val' - 'p10_nf0md'
-              upperbh1 = 'pitch_val' + 'p10_nf0md'
-              lowerbh2 = ('pitch_val' * 2) - ('p10_nf0md' * 2)
-              upperbh2 = ('pitch_val' * 2) + ('p10_nf0md' * 2)
-              #select 'ltas'
-              h1db = Get maximum... 'lowerbh1' 'upperbh1' None
-              h1hz = Get frequency of maximum... 'lowerbh1' 'upperbh1' None
-              h2db = Get maximum... 'lowerbh2' 'upperbh2' None
-              h2hz = Get frequency of maximum... 'lowerbh2' 'upperbh2' None
-              rh1hz = round('h1hz')
-              rh2hz = round('h2hz')
+              if min_formants > 3
+                f3 = Get mean... 3 ch_start ch_end Hertz
+                f4 = Get mean... 4 ch_start ch_end Hertz
+              elsif min_formants > 2
+                f3 = Get mean... 3 ch_start ch_end Hertz
+                f4 = 0
+              else
+                f3 = 0
+                f4 = 0
+              endif
 
-            # Get A1, A2, A3 measurements
-              p10_f1hzpt = 'f1' / 10
-              p10_f2hzpt = 'f2' / 10
-              p10_f3hzpt = 'f3' / 10
-              lowerba1 = 'f1' - 'p10_f1hzpt'
-              upperba1 = 'f1' + 'p10_f1hzpt'
-              lowerba2 = 'f2' - 'p10_f2hzpt'
-              upperba2 = 'f2' + 'p10_f2hzpt'
-              lowerba3 = 'f3' - 'p10_f3hzpt'
-              upperba3 = 'f3' + 'p10_f3hzpt'
-              a1db = Get maximum... 'lowerba1' 'upperba1' None
-              a1hz = Get frequency of maximum... 'lowerba1' 'upperba1' None
-              a2db = Get maximum... 'lowerba2' 'upperba2' None
-                a2hz = Get frequency of maximum... 'lowerba2' 'upperba2' None
-              a3db = Get maximum... 'lowerba3' 'upperba3' None
-              a3hz = Get frequency of maximum... 'lowerba3' 'upperba3' None
+              # Get pitch
+              select 'pitch_interpolated'
+              pitch_val = Get mean... start+quotient*(counter-1) start+quotient*counter Hertz
 
-              # Calculate potential voice quality correlates.
-              h1_minus_a1 = 'h1db' - 'a1db'
-              h1_minus_a2 = 'h1db' - 'a2db'
-              h1_minus_a3 = 'h1db' - 'a3db'
-            else
-              h1_minus_a1 = 0
-              h1_minus_a2 = 0
-              h1_minus_a3 = 0
-            endif
+              if pitch_val = undefined
+                pitch_val = 0
+              endif
 
-            resultLine$ = "'resultLine$''h1_minus_a1','h1_minus_a2','h1_minus_a3',"
+              # Get h1_minus_h2
+              select 'chunkedObj'
+              To Spectrum (fft)
+              spectrumObj = selected("Spectrum")
 
-            select 'ltasObj'
-            plus 'spectrumObj'
-            plus 'chunkedObj'
+              To Ltas (1-to-1)
+              ltasObj = selected("Ltas")
+
+              if pitch_val <> undefined
+                p10_nf0md = 'pitch_val' / 10
+                lowerbh1 = 'pitch_val' - 'p10_nf0md'
+                upperbh1 = 'pitch_val' + 'p10_nf0md'
+                lowerbh2 = ('pitch_val' * 2) - ('p10_nf0md' * 2)
+                upperbh2 = ('pitch_val' * 2) + ('p10_nf0md' * 2)
+                #select 'ltas'
+                h1db = Get maximum... 'lowerbh1' 'upperbh1' None
+                h1hz = Get frequency of maximum... 'lowerbh1' 'upperbh1' None
+                h2db = Get maximum... 'lowerbh2' 'upperbh2' None
+                h2hz = Get frequency of maximum... 'lowerbh2' 'upperbh2' None
+                rh1hz = round('h1hz')
+                rh2hz = round('h2hz')
+
+              # Get A1, A2, A3 measurements
+                p10_f1hzpt = 'f1' / 10
+                p10_f2hzpt = 'f2' / 10
+                p10_f3hzpt = 'f3' / 10
+                lowerba1 = 'f1' - 'p10_f1hzpt'
+                upperba1 = 'f1' + 'p10_f1hzpt'
+                lowerba2 = 'f2' - 'p10_f2hzpt'
+                upperba2 = 'f2' + 'p10_f2hzpt'
+                lowerba3 = 'f3' - 'p10_f3hzpt'
+                upperba3 = 'f3' + 'p10_f3hzpt'
+                a1db = Get maximum... 'lowerba1' 'upperba1' None
+                a1hz = Get frequency of maximum... 'lowerba1' 'upperba1' None
+                a2db = Get maximum... 'lowerba2' 'upperba2' None
+                  a2hz = Get frequency of maximum... 'lowerba2' 'upperba2' None
+                a3db = Get maximum... 'lowerba3' 'upperba3' None
+                a3hz = Get frequency of maximum... 'lowerba3' 'upperba3' None
+
+                # Calculate potential voice quality correlates.
+                h1_minus_a1 = 'h1db' - 'a1db'
+                h1_minus_a2 = 'h1db' - 'a2db'
+                h1_minus_a3 = 'h1db' - 'a3db'
+              else
+                h1_minus_a1 = 0
+                h1_minus_a2 = 0
+                h1_minus_a3 = 0
+              endif
+
+              resultLine$ = "'resultLine$''h1_minus_a1','h1_minus_a2','h1_minus_a3',"
+
+              select 'ltasObj'
+              plus 'spectrumObj'
+              plus 'chunkedObj'
+              Remove
+            endfor
+
+            # Clear object window
+            select 'formant_afterTracking'
+            plus 'formant_beforeTracking'
+            plus 'extractedObj'
             Remove
-          endfor
-
-          # Clear object window
-          select 'formant_afterTracking'
-          plus 'formant_beforeTracking'
-          plus 'extractedObj'
-          Remove
+          endif
         endif
 
         # Extract features: [sd, skewness, kurtosis, COG]
         if feature["sd_skewness_kurtosis_COG"] = 1
-          select 'soundObj'
-          # Add jitter for accurate formant tracking
-          Extract part... start-jitter end+jitter "rectangular" 1 "no"
-          extractedObj = selected("Sound")
 
-          # Extract features by chunk
-          for counter from 1 to 'chunks'
-            quotient = dur / chunks
-            ch_start = quotient * (counter - 1) + jitter
-            ch_end = ch_start + quotient
+          # Do not track or extract formants for SIL's which is subject to errors
+          if startsWith(label$, "SIL")
+            grav = 0
+            sdev = 0
+            skew = 0
+            kurt = 0
+
+            for counter from 1 to 'chunks'
+              resultLine$ = "'resultLine$''sdev','skew','kurt','grav',"
+            endfor
+
+          else
+            select 'soundObj'
+            # Add jitter for accurate formant tracking
+            Extract part... start-jitter end+jitter "rectangular" 1 "no"
+            extractedObj = selected("Sound")
+
+            # Extract features by chunk
+            for counter from 1 to 'chunks'
+              quotient = dur / chunks
+              ch_start = quotient * (counter - 1) + jitter
+              ch_end = ch_start + quotient
+
+              select 'extractedObj'
+              Extract part...  ch_start ch_end Hanning 1 no
+              Rename... 'name$'_chunked
+              chunkedObj = selected("Sound")
+
+              To Spectrum (fft)
+              spectrumObj = selected("Spectrum")
+
+              grav = Get centre of gravity... 2
+              sdev = Get standard deviation... 2
+              skew = Get skewness... 2
+              kurt = Get kurtosis... 2
+
+              resultLine$ = "'resultLine$''sdev','skew','kurt','grav',"
+
+              select 'spectrumObj'
+              plus 'chunkedObj'
+              Remove
+            endfor
 
             select 'extractedObj'
-            Extract part...  ch_start ch_end Hanning 1 no
-            Rename... 'name$'_chunked
-            chunkedObj = selected("Sound")
-
-            To Spectrum (fft)
-            spectrumObj = selected("Spectrum")
-
-            grav = Get centre of gravity... 2
-            sdev = Get standard deviation... 2
-            skew = Get skewness... 2
-            kurt = Get kurtosis... 2
-
-            resultLine$ = "'resultLine$''sdev','skew','kurt','grav',"
-
-            select 'spectrumObj'
-            plus 'chunkedObj'
             Remove
-          endfor
-
-          select 'extractedObj'
-          Remove
+          endif
         endif
+
 
         # Delete the trailing comma in resultLine and write to the result file
         len = length(resultLine$)
