@@ -426,6 +426,7 @@ if no_TextGrid = 1
       Rename... 'name$'_beforeTracking
       formant_beforeTracking = selected("Formant")
 
+      no_formants = 0
       min_formants = Get minimum number of formants
       if min_formants > 3
         Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
@@ -525,7 +526,6 @@ if no_TextGrid = 1
         Remove
       endif
     endif
-  endif
 
 
     # Extract features: [H1 - A1, H1 - A2, H1 - A3]
@@ -539,6 +539,7 @@ if no_TextGrid = 1
       Rename... 'name$'_beforeTracking
       formant_beforeTracking = selected("Formant")
 
+      no_formants = 0
       min_formants = Get minimum number of formants
       if min_formants > 3
         Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
@@ -843,6 +844,7 @@ elsif target = 1
             Rename... 'name$'_beforeTracking
             formant_beforeTracking = selected("Formant")
 
+            no_formants = 0
             min_formants = Get minimum number of formants
             if min_formants > 3
               Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
@@ -957,6 +959,7 @@ elsif target = 1
             Rename... 'name$'_beforeTracking
             formant_beforeTracking = selected("Formant")
 
+            no_formants = 0
             min_formants = Get minimum number of formants
             if min_formants > 3
               Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
@@ -1082,6 +1085,7 @@ elsif target = 1
             Rename... 'name$'_beforeTracking
             formant_beforeTracking = selected("Formant")
 
+            no_formants = 0
             min_formants = Get minimum number of formants
             if min_formants > 3
               Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
@@ -1418,6 +1422,7 @@ elsif target = 2
               Rename... 'name$'_beforeTracking
               formant_beforeTracking = selected("Formant")
 
+              no_formants = 0
               min_formants = Get minimum number of formants
               if min_formants > 3
                 Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
@@ -1523,6 +1528,7 @@ elsif target = 2
               Rename... 'name$'_beforeTracking
               formant_beforeTracking = selected("Formant")
 
+              no_formants = 0
               min_formants = Get minimum number of formants
               if min_formants > 3
                 Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
@@ -1635,6 +1641,7 @@ elsif target = 2
               Rename... 'name$'_beforeTracking
               formant_beforeTracking = selected("Formant")
 
+              no_formants = 0
               min_formants = Get minimum number of formants
               if min_formants > 3
                 Track... 4 'f1ref' 'f2ref' 'f3ref' 'f4ref' 'f5ref' 'freqcost' 'bwcost' 'transcost'
