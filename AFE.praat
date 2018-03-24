@@ -892,10 +892,12 @@ elsif target = 1
                 endif
                 resultLine$ = "'resultLine$''f1','f2','f3','f4',"
               endfor
+
+              select 'formant_afterTracking'
+              Remove
             endif
 
-            select 'formant_afterTracking'
-            plus 'formant_beforeTracking'
+            select 'formant_beforeTracking'
             plus 'extractedObj'
             Remove
           endif
@@ -1472,10 +1474,12 @@ elsif target = 2
 
                   resultLine$ = "'resultLine$''f1','f2','f3','f4',"
                 endfor
+
+                select 'formant_afterTracking'
+                Remove
               endif
 
-              select 'formant_afterTracking'
-              plus 'formant_beforeTracking'
+              select 'formant_beforeTracking'
               plus 'extractedObj'
               Remove
             endif
