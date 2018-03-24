@@ -127,40 +127,40 @@ printline Number of TextGrid files:'tab$''num_tg'
 if no_TextGrid = 1
   printline 'tab$'- [ No TextGrid ] option selected
 else
-  printline 'tab$'- Using Tier number:'tab$''tab$''tierNumber'
+  printline 'tab$'- Using Tier number:'tab$''tierNumber'
 endif
 
-printline Number of Chunks:'tab$''tab$''tab$''tab$''chunks'
+printline Number of Chunks:'tab$''tab$''chunks'
 printline 'delim$'
 
 printline Selected features:
 
 if feature["duration"] = 1
-  printline 'tab$''tab$''tab$''tab$''tab$''tab$' Duration
+  printline 'tab$''tab$''tab$''tab$' Duration
 endif
 
 if feature["formants"] = 1
-  printline 'tab$''tab$''tab$''tab$''tab$''tab$' Formants
+  printline 'tab$''tab$''tab$''tab$' Formants
 endif
 
 if feature["pitch"] = 1
-  printline 'tab$''tab$''tab$''tab$''tab$''tab$' Pitch
+  printline 'tab$''tab$''tab$''tab$' Pitch
 endif
 
 if feature["intensity"] = 1
-  printline 'tab$''tab$''tab$''tab$''tab$''tab$' Intensity
+  printline 'tab$''tab$''tab$''tab$' Intensity
 endif
 
 if feature["h1_minus_h2"] = 1
-  printline 'tab$''tab$''tab$''tab$''tab$''tab$' H1 - H2
+  printline 'tab$''tab$''tab$''tab$' H1 - H2
 endif
 
 if feature["h1_minus_a123"] = 1
-  printline 'tab$''tab$''tab$''tab$''tab$''tab$' H1 - A1, H1 - A2, H1 - A3
+  printline 'tab$''tab$''tab$''tab$' H1 - A1, H1 - A2, H1 - A3
 endif
 
 if feature["sd_skewness_kurtosis_COG"] = 1
-  printline 'tab$''tab$''tab$''tab$''tab$''tab$' sd, skewness, kurtosis, COG
+  printline 'tab$''tab$''tab$''tab$' sd, skewness, kurtosis, COG
 endif
 
 printline 'delim$'
@@ -666,7 +666,7 @@ if no_TextGrid = 1
     file_count = file_count + 1
 
     date$ = date$()
-    printline 'file_count''tab$'file(s) processed: 'soundFile$' - 'date$'
+    printline 'file_count'  file(s) processed: 'soundFile$' - 'date$'
 
     # Clear object window
     select all
@@ -1132,7 +1132,7 @@ elsif target = 1
     file_count = file_count + 1
 
     date$ = date$()
-    printline 'file_count''tab$'file(s) processed: 'soundFile$' - 'date$'
+    printline 'file_count'  file(s) processed: 'soundFile$' - 'date$'
 
     # Clear object window
     select all
@@ -1628,7 +1628,7 @@ elsif target = 2
     file_count = file_count + 1
 
     date$ = date$()
-    printline 'file_count''tab$'file(s) processed: 'soundFile$' - 'date$'
+    printline 'file_count'  file(s) processed: 'soundFile$' - 'date$'
 
     # Clear object window
     select all
